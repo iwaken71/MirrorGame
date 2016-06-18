@@ -10,6 +10,8 @@ public class PlayerScript : MonoBehaviour {
 	Vector3 startPos;
 	float speed = 0;
 	Rigidbody rb;
+
+
 	// Use this for initialization
 	void Start () {
 		warp1 = GameObject.Find ("Warp");
@@ -23,52 +25,65 @@ public class PlayerScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetMouseButtonDown (0)) {
-			Shot ();
+		if (GameManager.instance.state == GameManager.State.Game) {
+			if (Input.GetMouseButtonDown (0)) {
+				Shot ();
+			}
+			if (transform.position.y < -10) {
+				transform.position = startPos;
+			}
+		}else if(GameManager.instance.state == GameManager.State.Goal){
 
-		}
-		if (transform.position.y < -10) {
-			transform.position = startPos;
 		}
 		
 	
 	}
 
 	void OnTriggerEnter(Collider col){
-		if (col.tag == "Warp") {
-			if (!is_Warp) {
-				col.transform.parent.parent.GetComponent<Collider> ().isTrigger = true;
+		if (GameManager.instance.state == GameManager.State.Game) {
+			if (col.tag == "Warp") {
+				if (!is_Warp) {
+					col.transform.parent.parent.GetComponent<Collider> ().isTrigger = true;
+				}
+			} else if (col.tag == "Goal") {
+				GameManager.instance.ToGoal ();
 			}
+		} else if (GameManager.instance.state == GameManager.State.Goal) {
+
 		}
 
 	}
 	void OnTriggerExit(Collider col){
-		if (col.tag == "Warp") {
-			if (!is_Warp) {
+		if (GameManager.instance.state == GameManager.State.Game) {
+			if (col.tag == "Warp") {
+				if (!is_Warp) {
 
-				col.transform.parent.parent.GetComponent<Collider> ().isTrigger = false;
-				int id = col.transform.parent.GetComponent<WarpScript> ().id;
-				speed = rb.velocity.magnitude;
+					col.transform.parent.parent.GetComponent<Collider> ().isTrigger = false;
+					int id = col.transform.parent.GetComponent<WarpScript> ().id;
+					speed = rb.velocity.magnitude;
 
-				if (id == 1) {
+					if (id == 1) {
 				
-					transform.position = warp2.transform.position;
-					rb.velocity = warp2.transform.up.normalized * speed*0.3f;
-					transform.LookAt (warp2.transform.position+warp2.transform.up*10);
-					//transform.forward = warp2.transform.up;
+						transform.position = warp2.transform.position;
+						rb.velocity = warp2.transform.up.normalized * speed * 0.3f;
+						transform.LookAt (warp2.transform.position + warp2.transform.up * 10);
+						//transform.forward = warp2.transform.up;
 
 
 
+					} else {
+						transform.position = warp1.transform.position;
+						rb.velocity = warp1.transform.up.normalized * speed * 0.3f;
+						//transform.forward = warp1.transform.up;
+						transform.LookAt (warp1.transform.position + warp1.transform.up * 10);
+					}
+					is_Warp = true;
 				} else {
-					transform.position = warp1.transform.position;
-					rb.velocity = warp1.transform.up.normalized * speed * 0.3f;
-					//transform.forward = warp1.transform.up;
-					transform.LookAt (warp1.transform.position+warp1.transform.up*10);
+					is_Warp = false;
 				}
-				is_Warp = true;
-			} else {
-				is_Warp = false;
+
 			}
+		} else if (GameManager.instance.state == GameManager.State.Goal) {
 
 		}
 
@@ -106,5 +121,12 @@ public class PlayerScript : MonoBehaviour {
 		if (number > 2) {
 			number = 1;
 		}
+	}
+
+	public void ToStartPos(){
+		transform.position = startPos;
+		warp1.transform.position = Vector3.one * -1000;
+		warp2.transform.position = Vector3.one * -1100;
+
 	}
 }
